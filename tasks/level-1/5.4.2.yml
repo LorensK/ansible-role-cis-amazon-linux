@@ -14,9 +14,26 @@
     - "5.4.2"
     - scored
 
+# comm -12 selects lines that are in both arguments
+# first argument <() gets system accounts
+# second argument <() gets unlocked accounts
+
+- name: 5.4.2 - Retrieve unlocked system accounts
+  shell: "comm -12 <(awk -F: '($3 < 500) {print $1 }' /etc/passwd | grep -v ^# | sort) <(awk -F: '$2 !~ /^(\\*LOCK\\*|!.*)$/ {print $1 }' /etc/shadow | sort)"
+  args:
+    executable: "/bin/bash"
+  register: audit_5_4_2_unlocked
+  always_run: yes
+  changed_when: False
+  tags:
+    - level-1
+    - section-5
+    - "5.4.2"
+    - scored
+
 - name: 5.4.2 - Lock system user passwords
   shell: "usermod -L {{ item }}"
-  with_items: "{{ audit_5_4_2.stdout_lines }}"
+  with_items: "{{ audit_5_4_2_unlocked.stdout_lines }}"
   when: item != "root"
   tags:
     - level-1
