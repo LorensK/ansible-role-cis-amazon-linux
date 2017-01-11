@@ -17,7 +17,7 @@
 - name: 5.4.1.4 - Ensure inactive password lock is 30 days or less
   lineinfile:
     dest: "/etc/default/useradd"
-    regexp: "^INACTIVE\\s+"
+    regexp: "^INACTIVE\\s*=.*"
     line: "INACTIVE={{ cis_pass_inactive_lock }}"
   tags:
     - level-1
