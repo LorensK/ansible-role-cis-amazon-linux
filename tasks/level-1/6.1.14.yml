@@ -6,6 +6,8 @@
 - name: 6.1.14 - Check if any SGID executables exist
   shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type f -perm -2000
   register: audit_6_1_14
+  always_run: yes
+  changed_when: False
   tags:
     - level-1
     - section-6
