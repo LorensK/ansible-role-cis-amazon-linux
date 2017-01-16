@@ -3,7 +3,57 @@
 
 # 1.7.1.4 Ensure permissions on /etc/motd are configured
 
+- name: 1.7.1.4 - Check /etc/motd to see if it is a symlink or not
+  ignore_errors: yes
+  always_run: yes
+  changed_when: False
+  stat:
+    path: "/etc/motd"
+    follow: no
+  register: motd
+  tags:
+    - level-1
+    - 1.7.1.4
+    - not-scored
+
+- name: 1.7.1.4 - Check /etc/motd symlink
+  when: motd|succeeded and motd.stat.exists and motd.stat.islnk is defined and motd.stat.islnk
+  ignore_errors: yes
+  always_run: yes
+  changed_when: False
+  stat:
+    path: "/etc/motd"
+    follow: yes
+  register: motd_follow
+  tags:
+    - level-1
+    - 1.7.1.4
+    - not-scored
+
+- name: 1.7.1.4 - remove /etc/motd symlink if broken
+  when: not motd_follow|skipped and not motd_follow.stat.exists
+  file:
+    path: "/etc/motd"
+    state: absent
+  register: motd_rm
+  tags:
+    - level-1
+    - 1.7.1.4
+    - not-scored
+
+- name: 1.7.1.4 - create /etc/motd if necessary
+  when: (motd|succeeded and not motd.stat.exists) or (not motd_rm|skipped)
+  file:
+    path: "/etc/motd"
+    state: touch
+  ignore_errors: yes
+  tags:
+    - level-1
+    - 1.7.1.4
+    - not-scored
+
 - name: 1.7.1.4 - Ensure permissions on /etc/motd are configured
+  when: motd_follow|skipped or (motd_rm|succeeded and not motd_rm|skipped and not ansible_check_mode)
   file:
     path: "/etc/motd"
     owner: root
